@@ -31,7 +31,7 @@
 ## 🚀 核心特性
 
 - 🛠️ **714 REST Skills 全能库**：包含 51 个功能源码模块和 19 个 advisory 设计模块，支持 Batch 批处理，一次操控多个对象。
-- 🎛️ **双模式灵活切换**：Semi-Auto（代码优先路由）或 Full-Auto（直接操控路由），适配不同工作流。
+- 🔐 **三档权限模式 (v1.9.0+)**：Approval / Auto / Bypass，配合双轨审批渠道（Dialog / Panel），对齐 Claude Code permission modes；老用户升级零感知。
 - 🤖 **4 大 IDE 原生支持**：Claude Code / Antigravity / Codex / Cursor，一键安装即用。
 - 🛡️ **事务原子性保障**：操作失败自动回滚，场景永不残留，确保流程安全。
 - 🌍 **多实例同时控制**：自动端口发现与全局注册表，支持同时操控多个 Unity 项目。
@@ -40,20 +40,27 @@
 
 ---
 
-## 🎛️ 操作模式
+## 🔐 操作模式 (v1.9.0+)
 
-| 模式 | 默认 | AI 路由范围 | 适用场景 |
-|:-----|:----:|:-----------:|:---------|
-| **半自动 (Semi-Auto)** | ✅ | 8 个 REST 分类（约 121 个入口）+ 19 个 advisory 模块 | AI 写 C# 代码 + 少量 Skills 辅助（脚本、场景感知、编辑器控制、资产管理、工作流、调试、控制台） |
-| **全自动 (Full-Auto)** | — | 全部 714 个 REST Skills | AI 直接操控 Unity（创建物体、配置材质/灯光/UI、搭建场景） |
+UnitySkills 引入真正的服务端权限系统，对齐 Claude Code permission modes。模式切换统一在 Unity 面板（**Window > UnitySkills > Server**）完成，**不再支持对话触发词**。
 
-**切换方式**：
-- → Full-Auto：`"全自动模式"` / `"full auto"` / `"帮我搭建场景"` / `"直接操作 Unity"`
-- → Semi-Auto：`"半自动模式"` / `"semi-auto"` / `"代码优先"` — 每次新会话自动回到半自动
+| 模式 | 默认 | 行为 | 适用场景 |
+|:-----|:----:|:-----|:---------|
+| **Approval（审批）** | 新安装 | AI 想做事 → 服务端返回 `MODE_RESTRICTED` + grant token → 用户审批 → AI 重放 token 后执行 | 重控制、敏感项目 |
+| **Auto（自动）** | — | AI 直接执行 FullAuto skill；服务端仅拦自动判定的高危操作 | 日常开发 |
+| **Bypass（全自动）** | 老安装升级保持 | 全部放行，仅保留高危 `ConfirmationToken` 二次确认 | 自动化任务、CI、快速迭代 |
 
-> 19 个 advisory 设计模块（架构、性能、设计模式、可测试性、包级源码规则等）在两种模式下均可用，按需自动加载。
+**Approval 模式双轨审批**：
+- **Dialog 渠道**（默认）—— AI 对话说明意图 + grant token，用户文字同意后 AI 调 `POST /permission/grant` 重放
+- **Panel 渠道**（面板可选开启）—— grant token 必须在 Unity 面板点 **[Approve]** 才生效；AI 未经面板批准直接 grant 会返回 `GRANT_PENDING_APPROVAL`
+
+**老用户升级零感知**：插件检测旧版 `UnitySkills_*` EditorPrefs key 自动识别老安装，默认保持 **Bypass**，行为与原 Full-Auto 完全一致，无需任何操作。新安装默认 **Approval**（最安全）。
+
+> ❌ 不再识别对话触发词（如 `"全自动模式"` / `"semi-auto"`），请在 **Window > UnitySkills > Server** 面板切换。
 >
-> 模式是 AI 路由规则，不是服务端权限系统。REST API 仍会通过 `/skills` 暴露全部 Skills；Agent 选择调用时应遵守模式策略。
+> 📜 审计日志：`Library/UnitySkillsAudit.jsonl`（per-project，jsonl，1MB 滚动，保留 3 份），记录每次 grant / revoke / 被拒命中 / 调用。
+>
+> 19 个 advisory 设计模块（架构、性能、设计模式、可测试性、包级源码规则等）在所有模式下均可用，按需自动加载。
 
 ---
 

@@ -104,6 +104,49 @@
 - **Overview 中列出但模块实际没有的 skill** → 🟡 中等（误导读者）
 - **模块实际有但 Overview 未列出的 skill** → 🟢 建议（不影响 AI 调用，但文档不完整）
 
+### 3h. Mode 元数据 ↔ 文档一致性（v1.9.0+）
+
+针对 Skill 模式权限系统（见 `temp/skill-mode-permission-plan.md`），扫描所有 `[UnitySkill(...)]` 中的 `Mode = SkillMode.SemiAuto` 标注（默认 `FullAuto` 无需标注）。
+
+1. 列出所有显式标注 `Mode = SkillMode.SemiAuto` 的 skill 名（含所在文件 & 行号）
+2. 与下列文档来源比对：
+   - `unity-skills~/skills/SKILL.md` 主索引 Mode 列的 `SA` 标注
+   - 每个模块 `SKILL.md` 的 `## Guardrails` 区 `**Mode**` 字段
+3. 标注差异：
+   - **C# 标 SA 但文档无标注** → 🟡 中等（文档需补 SA 标注）
+   - **文档标 SA 但 C# 未标 / 标了别的** → 🔴 严重（AI 看文档以为是 SemiAuto，实际走 FullAuto 流，Approval 模式下会无谓触发 grant）
+
+### 3i. NeverInSemi 自动判定覆盖（v1.9.0+）
+
+按 `SkillsModeManager.IsForbiddenInSemi()` 规则对所有 skill 自动判定（规则见方案第 8 节）：
+
+```
+满足以下任意一条即 NeverInSemi：
+- Operation 含 Delete flag
+- MayEnterPlayMode = true
+- MayTriggerReload = true
+- RiskLevel == "high"（大小写不敏感）
+- 名字在 _explicitNeverList 兜底名单中
+```
+
+校验：
+
+1. **覆盖统计**：自动判定为 NeverInSemi 的 skill 总数（方案估算应 ≥ 40），按模块分组列出
+2. **兜底名单存活**：解析 `Editor/Skills/SkillsModeManager.cs` 中 `_explicitNeverList`（当前为 `scene_clear` / `scene_new` / `batch_apply`），确认每个 skill 仍存在于 C# 中——若已被移除/重命名 → 🟡 中等（清单需清理）
+3. **语义矛盾检测**：若某 skill 同时被 `Mode = SkillMode.SemiAuto` 手标 + 满足自动 NeverInSemi 判定 → 🔴 严重（必须移除其 SA 标注，或调整元数据让其不再满足 NeverInSemi 规则）
+
+### 3j. /permission/* 端点存活校验（可选 — 需服务运行）
+
+如果当前 Unity Editor + UnitySkills server 正在运行，发起以下 HTTP 检查（推荐用 `unity_skills.py` 客户端函数）：
+
+1. `get_permission_status()` → 响应必须含字段 `mode`、`panelApprovalRequired`、`granted`、`pending`、`counts`
+2. `get_server_status()`（`GET /health`）→ 必须含新字段 `currentMode`、`panelApprovalRequired`、`pendingCount`、`grantedCount`
+3. `get_skills()`（`GET /skills`）→ 每条 skill entry 必须含 `mode` 字段（值为 `"semi"` 或 `"full"`）
+
+任一字段缺失 → 🔴 严重（REST API 与文档/客户端不一致，AI 路由会出错）。
+
+> 服务未运行时跳过本子步骤，在报告统计中标注「已跳过：服务离线」。
+
 ## 步骤 4：输出审计报告
 
 按严重程度分级输出：
@@ -117,6 +160,9 @@
 - 文档 Skills 总数：{M}
 - 匹配：{X}
 - Advisory 模块（自动跳过）：{列出跳过的模块名}
+- Mode = SemiAuto 标注：{N}（C# 显式手标）
+- NeverInSemi 自动判定：{N}（含兜底名单 {K} 个）
+- /permission API 校验：{已通过 / 已跳过：服务离线 / N 项失败}
 
 🔴 严重问题（AI 会被误导）
 
@@ -131,6 +177,17 @@
 
   DO NOT 列表错误（声称不存在但实际存在）：
   - {module}/SKILL.md: DO NOT 声称 `{skill_name}` 不存在，但 C# 中已实现
+
+  Mode 文档失同步（文档标 SA, 代码未标）：
+  - {module}/SKILL.md: `{skill_name}` 文档标 Mode=SemiAuto 但 C# 中实际为 FullAuto
+
+  Mode 语义矛盾（手标 SA + 自动 NeverInSemi）：
+  - `{skill_name}` 被 `Mode = SkillMode.SemiAuto` 手标，但同时满足 IsForbiddenInSemi 自动判定（Operation 含 Delete / MayEnterPlayMode / ...）
+
+  /permission API 字段缺失（仅服务运行时校验）：
+  - `GET /permission/status` 响应缺少字段 `{counts/pending/...}`
+  - `GET /health` 响应缺少字段 `{currentMode/panelApprovalRequired/...}`
+  - `GET /skills` 部分 entry 缺少字段 `mode`
 
 🟡 中等问题（功能可用但文档不完整）
 
@@ -154,6 +211,12 @@
   Overview 表格多余条目：
   - {module}/SKILL.md: Overview 列出 `{skill_name}` 但该模块实际无此 Skill
 
+  Mode 文档遗漏（代码标 SA, 文档未标）：
+  - {module}/SKILL.md: `{skill_name}` C# 中标了 Mode=SemiAuto 但文档 Guardrails 中未注明
+
+  _explicitNeverList 兜底名单失效：
+  - `{skill_name}` 在 _explicitNeverList 中但 C# 中已移除/重命名
+
 🟢 建议（可改进项）
 
   元数据缺失：
@@ -161,6 +224,9 @@
 
   Overview 表格遗漏：
   - {module}/SKILL.md: Skill `{skill_name}` 未在 Overview 表格中列出
+
+  NeverInSemi 自动覆盖统计：
+  - 自动判定 {N} 个 skill 为 NeverInSemi（按模块分组：{module1: K1, module2: K2, ...}）
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 {问题总数} 个问题，其中 {严重} 个严重、{中等} 个中等、{建议} 个建议

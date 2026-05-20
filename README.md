@@ -31,7 +31,7 @@ This project is a deep refactoring and feature extension based on the excellent 
 ## 🚀 Core Features
 
 - 🛠️ **714 REST Skills Comprehensive Toolkit**: Includes 51 functional source modules plus 19 advisory design modules, with Batch operations for multi-object control.
-- 🎛️ **Dual-Mode Flexibility**: Use Semi-Auto (code-first routing) or Full-Auto (direct manipulation routing) for different workflows.
+- 🔐 **Three-Tier Permission Modes (v1.9.0+)**: Approval / Auto / Bypass with dual approval channels (Dialog / Panel), aligned with Claude Code permission modes; zero-impact upgrade for existing users.
 - 🤖 **4 Major IDEs Native Support**: Claude Code / Antigravity / Codex / Cursor — one-click install and use.
 - 🛡️ **Transactional Atomicity**: Failed operations auto-rollback, leaving scenes clean and safe.
 - 🌍 **Multi-Instance Simultaneous Control**: Automatic port discovery and global registry for controlling multiple Unity projects at once.
@@ -40,20 +40,27 @@ This project is a deep refactoring and feature extension based on the excellent 
 
 ---
 
-## 🎛️ Operating Modes
+## 🔐 Operating Modes (v1.9.0+)
 
-| Mode | Default | AI Routing Scope | Use Case |
-|:-----|:-------:|:----------------:|:---------|
-| **Semi-Auto** | ✅ | 8 REST categories (~121 entries) + 19 advisory modules | AI writes C# code + light Skills assist (script, perception, scene, editor, asset, workflow, debug, console) |
-| **Full-Auto** | — | All 714 REST Skills | AI directly manipulates Unity (create objects, configure materials/lights/UI, build scenes) |
+UnitySkills ships with a true server-side permission system aligned with Claude Code permission modes. All mode switching happens in the Unity panel (**Window > UnitySkills > Server**) — chat trigger words are no longer supported.
 
-**How to switch**:
-- → Full-Auto: `"full auto"` / `"full-auto mode"` / `"build the scene for me"` / `"directly manipulate Unity"`
-- → Semi-Auto: `"semi-auto"` / `"code-first"` — each new session defaults to Semi-Auto
+| Mode | Default | Behavior | Use Case |
+|:-----|:-------:|:---------|:---------|
+| **Approval** | New installs | AI must request → user approves → execute (returns `MODE_RESTRICTED` + grant token) | Manual control, sensitive projects |
+| **Auto** | — | AI runs FullAuto skills directly; server only blocks auto-detected high-risk ops | Day-to-day development |
+| **Bypass** | Existing installs (upgrade) | All skills run unrestricted; only `ConfirmationToken` gate remains for high-risk ops | Automation, CI, fast iteration |
 
-> 19 advisory design modules (architecture, performance, design patterns, testability, package-specific source rules, etc.) are available in both modes and loaded on demand.
+**Two approval channels under Approval mode**:
+- **Dialog** (default) — AI explains intent + grant token, user agrees in chat, AI replays the token via `POST /permission/grant`
+- **Panel** (opt-in) — grant token only takes effect after user clicks **[Approve]** in the Unity panel; AI-issued grants without panel approval return `GRANT_PENDING_APPROVAL`
+
+**Zero-impact upgrade for existing users**: the plugin detects legacy `UnitySkills_*` EditorPrefs keys and keeps **Bypass** as the default, preserving the previous Full-Auto behavior with no action required. New installations default to **Approval** (safest).
+
+> ❌ Chat trigger words (e.g. `"full auto"` / `"semi-auto"`) are no longer recognized. Switch modes in **Window > UnitySkills > Server**.
 >
-> Modes are AI routing rules, not a server-side permission system. The REST API still exposes all skills through `/skills`; agents should follow the mode policy when choosing what to call.
+> 📜 Audit log: `Library/UnitySkillsAudit.jsonl` (per-project, jsonl, auto-rolls at 1MB, keeps 3 files) records every grant / revoke / restricted hit / call.
+>
+> 19 advisory design modules (architecture, performance, design patterns, testability, package-specific source rules, etc.) are available in all modes and loaded on demand.
 
 ---
 
