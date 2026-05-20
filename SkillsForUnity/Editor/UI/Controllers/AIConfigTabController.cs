@@ -180,16 +180,66 @@ namespace UnitySkills
             globBtn.text = SkillsLocalization.Get(globInstalled ? "agent_update_global" : "agent_install_global");
             actions.Add(globBtn);
 
-            // Uninstall — combined dialog asks which scope; or per-scope if only one installed.
-            var uninstallBtn = new Button(() => OnUninstallClick(cfg, projInstalled, globInstalled));
-            uninstallBtn.AddToClassList("mini-btn");
-            uninstallBtn.AddToClassList("uninstall");
-            uninstallBtn.text = SkillsLocalization.Get("uninstall");
-            uninstallBtn.SetEnabled(anyInstalled);
+            // Uninstall — single button whose label/behaviour follows install state:
+            //   nothing installed → disabled "Uninstall" placeholder (keeps layout stable)
+            //   only one scope    → direct uninstall of that scope
+            //   both scopes       → dropdown menu with explicit per-scope items
+            // Picking install-state at click time (via cfg.isXxxInstalled) protects against
+            // stale captures if the user installs/uninstalls between rebuilds.
+            var uninstallBtn = BuildUninstallButton(cfg);
             actions.Add(uninstallBtn);
 
             card.Add(actions);
             return card;
+        }
+
+        private Button BuildUninstallButton(AgentConfig cfg)
+        {
+            bool projInstalled = cfg.isProjInstalled();
+            bool globInstalled = cfg.isGlobInstalled();
+
+            var btn = new Button();
+            btn.AddToClassList("mini-btn");
+            btn.AddToClassList("uninstall");
+
+            if (!projInstalled && !globInstalled)
+            {
+                btn.text = SkillsLocalization.Get("uninstall");
+                btn.SetEnabled(false);
+                return btn;
+            }
+
+            if (projInstalled && globInstalled)
+            {
+                // Show a "▾" affordance so the user knows it opens a menu rather than
+                // immediately wiping one scope.
+                btn.text = SkillsLocalization.Get("uninstall") + " ▾";
+                btn.clicked += () => ShowUninstallMenu(btn, cfg);
+                return btn;
+            }
+
+            // Exactly one scope installed → directly uninstall it.
+            bool targetGlobal = globInstalled;
+            string scopeKey = targetGlobal ? "agent_install_global" : "agent_install_project";
+            // Compose a clear label like "Uninstall Project" / "卸载 全局" so the user
+            // sees which scope this single click will affect.
+            btn.text = SkillsLocalization.Get("uninstall") + " " + SkillsLocalization.Get(scopeKey);
+            btn.clicked += () => OnUninstallClick(cfg, targetGlobal);
+            return btn;
+        }
+
+        private void ShowUninstallMenu(Button anchor, AgentConfig cfg)
+        {
+            var menu = new GenericMenu();
+            menu.AddItem(
+                new GUIContent(SkillsLocalization.Get("uninstall") + " " + SkillsLocalization.Get("agent_install_project")),
+                false,
+                () => OnUninstallClick(cfg, isGlobal: false));
+            menu.AddItem(
+                new GUIContent(SkillsLocalization.Get("uninstall") + " " + SkillsLocalization.Get("agent_install_global")),
+                false,
+                () => OnUninstallClick(cfg, isGlobal: true));
+            menu.DropDown(anchor.worldBound);
         }
 
         private VisualElement BuildCustomAgentCard()
@@ -288,37 +338,19 @@ namespace UnitySkills
             RebuildAgentsList();
         }
 
-        private void OnUninstallClick(AgentConfig cfg, bool projInstalled, bool globInstalled)
+        private void OnUninstallClick(AgentConfig cfg, bool isGlobal)
         {
-            // Pick scope to uninstall:
-            // - both installed → ask which
-            // - only one installed → that one
-            bool? targetGlobal = null;
+            string scopeText = isGlobal
+                ? " (" + SkillsLocalization.Get("agent_install_global") + ")"
+                : " (" + SkillsLocalization.Get("agent_install_project") + ")";
 
-            if (projInstalled && globInstalled)
-            {
-                int choice = EditorUtility.DisplayDialogComplex(
-                    SkillsLocalization.Get("uninstall"),
-                    string.Format(SkillsLocalization.Get("uninstall_confirm"), cfg.nameDisplay),
-                    SkillsLocalization.Get("agent_install_project"),
-                    "Cancel",
-                    SkillsLocalization.Get("agent_install_global"));
-
-                if (choice == 1) return;            // Cancel
-                targetGlobal = (choice == 2);       // 0 = project, 2 = global
-            }
-            else if (projInstalled) targetGlobal = false;
-            else if (globInstalled) targetGlobal = true;
-            else return;
-
-            string scopeText = targetGlobal.Value ? " (Global)" : " (Project)";
             if (!EditorUtility.DisplayDialog(
                 SkillsLocalization.Get("uninstall"),
                 string.Format(SkillsLocalization.Get("uninstall_confirm"), cfg.nameDisplay + scopeText),
                 "OK", "Cancel"))
                 return;
 
-            var result = cfg.uninstallFunc(targetGlobal.Value);
+            var result = cfg.uninstallFunc(isGlobal);
             if (result.success)
                 EditorUtility.DisplayDialog("Success", SkillsLocalization.Get("uninstall_success"), "OK");
             else
