@@ -350,10 +350,15 @@ namespace UnitySkills
         private const int MaxEntries = 500;
 
         // 类型筛选下拉选项；"All" 表示不过滤。新事件类型在 AuditLog 添加后同步追加。
+        // v1.9 引入了 allowlist_* / grant_executed / audit_* 系列；revoke / revoke_all 保留以兼容旧日志。
         private static readonly string[] _typeOptions = new[]
         {
-            "All", "call", "mode_restricted_hit", "mode_changed",
-            "grant", "approve", "deny", "revoke", "revoke_all"
+            "All",
+            "call", "mode_restricted_hit", "mode_changed",
+            "grant", "grant_executed", "approve", "deny",
+            "allowlist_add", "allowlist_remove", "allowlist_clear", "allowlist_migrated",
+            "audit_deleted", "audit_cleared",
+            "revoke", "revoke_all",
         };
 
         private TextField     _pathField;
@@ -417,13 +422,13 @@ namespace UnitySkills
             }
             if (refreshBtn != null)
             {
-                refreshBtn.text = PermissionUiHelpers.L("perm_refresh", "↻ Refresh", "↻ 刷新");
+                refreshBtn.text = PermissionUiHelpers.L("perm_refresh", "Refresh", "刷新");
                 refreshBtn.clicked += Reload;
             }
             if (clearBtn != null)
             {
                 clearBtn.text = PermissionUiHelpers.L("perm_audit_clear_all",
-                    "🗑 Clear All", "🗑 清空全部");
+                    "Clear All", "清空全部");
                 clearBtn.tooltip = PermissionUiHelpers.L("perm_audit_clear_all_tip",
                     "Permanently delete the entire audit log (including rotated files).",
                     "永久删除整个审计日志（含已滚动文件）。");
@@ -604,7 +609,7 @@ namespace UnitySkills
             // click handler ONCE here and resolve the current entry via the button's
             // userData (rebound on every BindRow). This avoids stacking duplicate
             // handlers on each rebind.
-            var del = new Button { name = "row-delete", text = "✕" };
+            var del = new Button { name = "row-delete", text = "X" };
             del.AddToClassList("audit-row__delete");
             del.tooltip = PermissionUiHelpers.L("perm_audit_delete_row",
                 "Delete this entry", "删除该条");
@@ -626,13 +631,13 @@ namespace UnitySkills
             var suffix = el.Q<Label>("row-suffix");
             var del    = el.Q<Button>("row-delete");
 
-            if (icon != null)   icon.text   = e.Icon;
-            if (time != null)   time.text   = e.ShortTime;
-            if (skill != null)  skill.text  = e.Summary;
-            if (suffix != null) suffix.text = e.Suffix;
+            if (icon != null   && icon.text   != e.Icon)    icon.text   = e.Icon;
+            if (time != null   && time.text   != e.ShortTime) time.text = e.ShortTime;
+            if (skill != null  && skill.text  != e.Summary) skill.text  = e.Summary;
+            if (suffix != null && suffix.text != e.Suffix)  suffix.text = e.Suffix;
             if (badge != null)
             {
-                badge.text = e.BadgeText;
+                if (badge.text != e.BadgeText) badge.text = e.BadgeText;
                 ClearBadgeClass(badge);
                 badge.AddToClassList(e.BadgeClass);
             }
@@ -725,23 +730,30 @@ namespace UnitySkills
             {
                 case "call":
                     if (e.Result == "allowed")
-                    { e.Icon = "▶"; e.BadgeText = "CALL ALLOW";    e.BadgeClass = "badge-allow"; }
+                    { e.Icon = ">"; e.BadgeText = "CALL ALLOW";    e.BadgeClass = "badge-allow"; }
                     else if (e.Result == "restricted")
-                    { e.Icon = "⚠"; e.BadgeText = "CALL RESTRICT"; e.BadgeClass = "badge-restricted"; }
+                    { e.Icon = "!"; e.BadgeText = "CALL RESTRICT"; e.BadgeClass = "badge-restricted"; }
                     else if (e.Result == "forbidden")
-                    { e.Icon = "✖"; e.BadgeText = "CALL FORBID";   e.BadgeClass = "badge-forbidden"; }
+                    { e.Icon = "x"; e.BadgeText = "CALL FORBID";   e.BadgeClass = "badge-forbidden"; }
                     else
-                    { e.Icon = "•"; e.BadgeText = "CALL";          e.BadgeClass = "badge-other"; }
+                    { e.Icon = "*"; e.BadgeText = "CALL";          e.BadgeClass = "badge-other"; }
                     break;
-                case "mode_restricted_hit": e.Icon = "🚫"; e.BadgeText = "RESTRICTED"; e.BadgeClass = "badge-restricted"; break;
-                case "mode_changed":        e.Icon = "⚙";  e.BadgeText = "MODE";       e.BadgeClass = "badge-mode";       break;
-                case "grant":               e.Icon = "✓";  e.BadgeText = "GRANT";      e.BadgeClass = "badge-grant";      break;
-                case "approve":             e.Icon = "✓";  e.BadgeText = "APPROVE";    e.BadgeClass = "badge-grant";      break;
-                case "deny":                e.Icon = "✖";  e.BadgeText = "DENY";       e.BadgeClass = "badge-deny";       break;
-                case "revoke":              e.Icon = "↩";  e.BadgeText = "REVOKE";     e.BadgeClass = "badge-revoke";     break;
-                case "revoke_all":          e.Icon = "↩↩"; e.BadgeText = "REVOKE ALL"; e.BadgeClass = "badge-revoke";     break;
+                case "mode_restricted_hit": e.Icon = "!"; e.BadgeText = "RESTRICTED"; e.BadgeClass = "badge-restricted"; break;
+                case "mode_changed":        e.Icon = "M"; e.BadgeText = "MODE";       e.BadgeClass = "badge-mode";       break;
+                case "grant":               e.Icon = "+"; e.BadgeText = "GRANT";      e.BadgeClass = "badge-grant";      break;
+                case "grant_executed":      e.Icon = ">"; e.BadgeText = "GRANT EXEC"; e.BadgeClass = "badge-grant";      break;
+                case "approve":             e.Icon = "+"; e.BadgeText = "APPROVE";    e.BadgeClass = "badge-grant";      break;
+                case "deny":                e.Icon = "x"; e.BadgeText = "DENY";       e.BadgeClass = "badge-deny";       break;
+                case "allowlist_add":       e.Icon = "+"; e.BadgeText = "ALLOW +";    e.BadgeClass = "badge-allow";      break;
+                case "allowlist_remove":    e.Icon = "-"; e.BadgeText = "ALLOW -";    e.BadgeClass = "badge-revoke";     break;
+                case "allowlist_clear":     e.Icon = "C"; e.BadgeText = "ALLOW CLR";  e.BadgeClass = "badge-revoke";     break;
+                case "allowlist_migrated":  e.Icon = "^"; e.BadgeText = "MIGRATED";   e.BadgeClass = "badge-mode";       break;
+                case "audit_deleted":       e.Icon = "x"; e.BadgeText = "AUDIT DEL";  e.BadgeClass = "badge-revoke";     break;
+                case "audit_cleared":       e.Icon = "X"; e.BadgeText = "AUDIT CLR";  e.BadgeClass = "badge-deny";       break;
+                case "revoke":              e.Icon = "<"; e.BadgeText = "REVOKE";     e.BadgeClass = "badge-revoke";     break;
+                case "revoke_all":          e.Icon = "<<";e.BadgeText = "REVOKE ALL"; e.BadgeClass = "badge-revoke";     break;
                 default:
-                    e.Icon = "•";
+                    e.Icon = "*";
                     e.BadgeText = e.Type?.ToUpperInvariant() ?? "?";
                     e.BadgeClass = "badge-other";
                     break;
@@ -752,7 +764,7 @@ namespace UnitySkills
         {
             switch (e.Type)
             {
-                case "mode_changed": return $"→ {e.Mode ?? "?"}";
+                case "mode_changed": return $"-> {e.Mode ?? "?"}";
                 case "revoke_all":   return $"{(e.Count?.ToString() ?? "?")} skills";
                 default:             return string.IsNullOrEmpty(e.Skill) ? "" : e.Skill;
             }
@@ -818,7 +830,7 @@ namespace UnitySkills
 
         private void OnClearAllClicked()
         {
-            string title = PermissionUiHelpers.L("perm_audit_clear_all", "🗑 Clear All", "🗑 清空全部");
+            string title = PermissionUiHelpers.L("perm_audit_clear_all", "Clear All", "清空全部");
             string msg = PermissionUiHelpers.L("perm_audit_clear_all_confirm",
                 "Permanently delete the entire audit log (including rotated history files)?\n\nThis cannot be undone. The wipe itself will be recorded as a fresh 'audit_cleared' entry.",
                 "确定永久删除整个审计日志（含历史滚动文件）吗？\n\n该操作不可撤销。清空动作本身会作为新的 audit_cleared 事件留痕。");

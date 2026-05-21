@@ -938,8 +938,9 @@ def revoke_permission(skill: str = None, all: bool = False) -> Dict[str, Any]:
 def list_allowlist() -> Dict[str, Any]:
     """GET /permission/allowlist —— 列出当前用户白名单 skill。
 
-    返回 ``{allowlist: [...], count: N}``。白名单 skill 在所有模式下调用时
-    直接放行，无需 grant 流程；可覆盖 Delete / PlayMode / Reload 等高危拦截。
+    返回 ``{allowlist: [...], count: N}``。白名单 skill 跳过 Approval/MODE_RESTRICTED
+    门禁直接放行，可覆盖 Delete / PlayMode / Reload / RiskLevel=high 等 ModeGate 高危拦截；
+    但**不绕过** ConfirmationToken 二次确认（若 RequireConfirmation 开启，仍需 _confirm 重放）。
     白名单由用户在 Unity 面板手动管理；AI 一般不应调用 add/remove。
     """
     try:
@@ -951,8 +952,10 @@ def list_allowlist() -> Dict[str, Any]:
 def add_to_allowlist(skill: str) -> Dict[str, Any]:
     """POST /permission/allowlist/add —— 把 skill 加入白名单。
 
-    注意：白名单命中后该 skill 在所有模式下直接放行，**包括 Delete / PlayMode /
-    Reload 等高危拦截**。建议仅在用户明确授权的会话场景使用
+    注意：白名单命中后该 skill 在所有模式下绕过 Approval/MODE_RESTRICTED 门禁，
+    **包括 Delete / PlayMode / Reload / RiskLevel=high 等 ModeGate 高危拦截**；但**不绕过**
+    ConfirmationToken 二次确认（高危 skill 在 RequireConfirmation 开启时仍走 _confirm 握手）。
+    建议仅在用户明确授权的会话场景使用
     （例如批量任务前用户同意把若干 skill 加白名单方便后续直接调）。
 
     Args:

@@ -11,8 +11,8 @@
             <ui:Label name="audit-path-label" class="audit-path-label" text="Log:" />
             <ui:TextField name="audit-path-field" class="audit-path-field" readonly="true" />
             <ui:Button name="audit-reveal-btn" class="audit-btn" text="Reveal" />
-            <ui:Button name="audit-refresh-btn" class="audit-btn" text="↻ Refresh" />
-            <ui:Button name="audit-clear-btn" class="audit-btn audit-btn--danger" text="🗑 Clear All" />
+            <ui:Button name="audit-refresh-btn" class="audit-btn" text="Refresh" />
+            <ui:Button name="audit-clear-btn" class="audit-btn audit-btn--danger" text="Clear All" />
         </ui:VisualElement>
 
         <!-- Filter bar: search + type dropdown + count -->

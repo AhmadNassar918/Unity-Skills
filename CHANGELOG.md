@@ -5,7 +5,7 @@ All notable changes to **UnitySkills** will be documented in this file.
 ## [1.9.1] - 2026-05-21
 
 ### Changed
-- **权限系统拆分为两条独立通道** —— 用户管理的 Allowlist（可覆盖 Delete / PlayMode / Reload 等高危拦截）+ 单次一步执行的 Approval grant（不再持久化）。原"批准后 GrantedSkills 永久自动放行"语义移除：grant 现在每次都要重新走，持久放行交给 Allowlist。
+- **权限系统拆分为两条独立通道** —— 用户管理的 Allowlist（可覆盖 Delete / PlayMode / Reload / RiskLevel=high 等 ModeGate 高危拦截，但**不绕过** ConfirmationToken 二次确认）+ 单次一步执行的 Approval grant（不再持久化）。原"批准后 GrantedSkills 永久自动放行"语义移除：grant 现在每次都要重新走，持久放行交给 Allowlist。
 - **`/permission/grant` 改为一步执行** —— Grant 通过的同一次请求里，服务端直接执行原 skill 并在响应里返回 ``{ok: true, executed: true, skill, result}``，AI 不再需要重放原 skill 调用。Panel 渠道下用户点完 Approve 后，AI 同样调一次 `/permission/grant` 拿 `result`。args 字段在 grant 端点可省略，服务端用 entry 缓存的原 args 校验+执行。
 - **设置抽屉 "Granted Skills" 重命名为 "Allowlist Skills"** —— 整段（含 `+ Add Skill` / `Clear All` 按钮和列表）包进 Foldout 整体可折叠，节省抽屉空间；已授权 skill 按 Category 二级折叠分组，未注册的归 `(Unknown)` 组。
 - **`/permission/status` 字段 `granted` 重命名为 `allowlist`** —— 保留 `granted` 一版本作为 deprecated 别名，下个 minor 版本移除。
