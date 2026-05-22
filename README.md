@@ -6,7 +6,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Unity-2022.3%2B-black?style=for-the-badge&logo=unity" alt="Unity">
-  <img src="https://img.shields.io/badge/Skills-714-green?style=for-the-badge" alt="Skills">
+  <img src="https://img.shields.io/badge/Skills-750-green?style=for-the-badge" alt="Skills">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-orange?style=for-the-badge" alt="License"></a>
   <a href="README_CN.md"><img src="https://img.shields.io/badge/README-中文-blue?style=for-the-badge" alt="中文"></a>
 </p>
@@ -30,7 +30,7 @@ This project is a deep refactoring and feature extension based on the excellent 
 
 ## 🚀 Core Features
 
-- 🛠️ **714 REST Skills Comprehensive Toolkit**: Includes 51 functional source modules plus 19 advisory design modules, with Batch operations for multi-object control.
+- 🛠️ **750 REST Skills Comprehensive Toolkit**: Includes 51 functional source modules plus 19 advisory design modules, with Batch operations for multi-object control.
 - 🔐 **Three-Tier Permission Modes (v1.9.0+)**: Approval / Auto / Bypass with dual approval channels (Dialog / Panel), aligned with Claude Code permission modes; zero-impact upgrade for existing users.
 - 🤖 **4 Major IDEs Native Support**: Claude Code / Antigravity / Codex / Cursor — one-click install and use.
 - 🛡️ **Transactional Atomicity**: Failed operations auto-rollback, leaving scenes clean and safe.
@@ -172,7 +172,7 @@ If you're using other tools that support Skills, install according to the Skills
 ---
 
 <details>
-<summary><h2>📦 Skills Category Overview (714)</h2></summary>
+<summary><h2>📦 Skills Category Overview (750)</h2></summary>
 
 | Category | Count | Core Functions |
 | :--- | :---: | :--- |
@@ -186,13 +186,13 @@ If you're using other tools that support Skills, install according to the Skills
 | **ProBuilder** | 22 | ProBuilder shape creation/face-edge operations/UV tools/pivot edits/batch creation/mesh combination |
 | **XR** | 22 | XR rig setup/interactors/interactables/teleportation/continuous move/UI/haptics/interaction layers |
 | **Material** | 21 | Batch material property modification/HDR/PBR/Emission/Keywords/Render queue |
-| **PostProcess** | 10 | SRP post-processing effect management |
+| **PostProcess** | 20 | SRP post-processing effect management |
 | **GameObject** | 18 | Create/Find/Transform sync/Batch operations/Hierarchy management/Rename/Duplicate |
 | **Perception** | 18 | Scene summary/health checks/stack detection/context export/dependency analysis/hotspots/diff/tag-layer stats/performance hints |
-| **Volume** | 9 | VolumeProfile/Volume/VolumeComponent creation and parameter editing |
+| **Volume** | 18 | VolumeProfile/Volume/VolumeComponent creation and parameter editing |
 | **Validation** | 10 | Project validation/Empty folder cleanup/Reference detection/Mesh collider/Shader errors |
-| **URP** | 7 | URP asset/renderer/renderer feature inspection and edits |
-| **Decal** | 7 | URP Decal Projector create/inspect/configure/delete workflows |
+| **URP** | 14 | URP asset/renderer/renderer feature inspection and edits |
+| **Decal** | 14 | URP Decal Projector create/inspect/configure/delete workflows |
 | **DOTween** | 21 | DOTweenAnimation editor-time setup and tuning |
 | **Editor** | 12 | Play mode/Selection/Undo-Redo/Context retrieval/Menu execution |
 | **Physics** | 12 | Raycast/SphereCast/BoxCast/Physics materials/Layer collision matrix |
@@ -205,7 +205,7 @@ If you're using other tools that support Skills, install according to the Skills
 | **Package** | 11 | Package management/Install/Remove/Search/Versions/Dependencies/Cinemachine/Splines |
 | **Prefab** | 11 | Create/Instantiate/Override apply & revert/Batch instantiate/Variants/Find instances/Asset property editing |
 | **Shader** | 11 | Shader create/URP templates/Compile check/Keywords/Variant analysis/Global keywords |
-| **Test** | 11 | Test run/Run by name/Categories/Template create/Summary statistics |
+| **Test** | 13 | Test run/Run by name/Categories/Template create/Summary statistics |
 | **Animator** | 10 | Animation controller/Parameters/State machine/Transitions/Assign/Play |
 | **Audio** | 10 | Audio import settings/AudioSource/AudioClip/AudioMixer/Batch |
 | **Cleaner** | 10 | Unused assets/Duplicate files/Empty folders/Missing script fix/Dependency tree |
@@ -247,7 +247,7 @@ If you're using other tools that support Skills, install according to the Skills
 │   │   │   └── unity_skills.py     # Python Client Library
 │   │   ├── skills/                 # 68 module docs (49 REST/module docs + 19 advisory docs)
 │   │   └── references/             # Unity Development References
-│   └── Editor/Skills/              # Core Skill Logic (51 *Skills.cs files, 714 Skills)
+│   └── Editor/Skills/              # Core Skill Logic (51 *Skills.cs files, 750 Skills)
 │       ├── SkillsHttpServer.cs     # HTTP Server Core (Producer-Consumer)
 │       ├── SkillRouter.cs          # Request Routing & Reflection-based Skill Discovery
 │       ├── WorkflowManager.cs      # Persistent Workflow (Task/Session/Snapshot)
@@ -259,7 +259,7 @@ If you're using other tools that support Skills, install according to the Skills
 │       ├── CinemachineSkills.cs    # Cinemachine 2.x/3.x (34 skills)
 │       ├── WorkflowSkills.cs       # Workflow Undo/Rollback (23 skills)
 │       ├── PerceptionSkills.cs     # Scene Understanding (18 skills)
-│       └── ...                     # 714 Skills source code
+│       └── ...                     # 750 Skills source code
 ├── docs/
 │   └── SETUP_GUIDE.md              # Complete Setup & Usage Guide
 ├── CHANGELOG.md                    # Version Update Log

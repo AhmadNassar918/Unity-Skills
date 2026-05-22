@@ -112,7 +112,7 @@ UnitySkills 在**服务端**真正做权限拦截（不再只是 AI 路由建议
 |------|----------|------|
 | **Approval（审批）** | — | AI 调 FullAuto skill → 服务端返回 `MODE_RESTRICTED` + grant token → 用户批准 → AI 调 `POST /permission/grant` 重放 token → skill 执行 |
 | **Auto（自动）** | 新安装 | AI 直接执行 FullAuto skill；服务端仅拦自动判定的 NeverInSemi（`Delete` / `MayEnterPlayMode` / `MayTriggerReload` / `RiskLevel="high"` + 兜底名单约 5 条） |
-| **Bypass（全自动）** | < v1.9 升级用户 | 全部放行，仅保留高危 `ConfirmationToken` 二次确认 |
+| **Bypass（全部直接放行）** | < v1.9 升级用户 | 全部放行，仅保留高危 `ConfirmationToken` 二次确认 |
 
 **Approval 模式双轨审批**：
 - **Dialog 渠道**（默认）—— AI 对话说明意图 + grant token，用户文字同意后 AI 直接重放 token

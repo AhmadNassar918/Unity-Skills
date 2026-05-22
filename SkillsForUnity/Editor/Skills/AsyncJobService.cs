@@ -325,6 +325,34 @@ namespace UnitySkills
             return BatchPersistence.ListJobs(limit);
         }
 
+        /// <summary>
+        /// Build the canonical progress-snapshot payload shared by
+        /// HTTP <c>GET /jobs/{id}/progress</c> and the <c>job_progress</c> skill.
+        /// Returns null when <paramref name="record"/> is null; otherwise returns
+        /// an anonymous object with <c>jobId/status/totalCount/offset/events/terminal</c>.
+        /// </summary>
+        internal static object BuildProgressSnapshot(BatchJobRecord record, int offset)
+        {
+            if (record == null)
+                return null;
+
+            offset = Math.Max(0, offset);
+            var events = record.progressEvents ?? new List<BatchJobProgressEvent>();
+            var sliced = events.Skip(offset)
+                .Select(e => new { e.timestamp, e.progress, e.stage, e.description })
+                .ToArray();
+
+            return new
+            {
+                jobId = record.jobId,
+                status = record.status,
+                totalCount = events.Count,
+                offset,
+                events = sliced,
+                terminal = IsTerminal(record.status),
+            };
+        }
+
         internal static BatchJobRecord StartSmokeJob(
             SkillRouter.SkillInfo[] skills,
             string[] metadataIssues,

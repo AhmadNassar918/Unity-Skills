@@ -1191,6 +1191,10 @@ namespace UnitySkills
                     panelApprovalRequired = SkillsModeManager.PanelApprovalRequired,
                     pendingCount,
                     allowlistCount,
+                    // Deprecated alias for allowlistCount, kept for v1.9.x backward compatibility
+                    // (mirrors the `granted` / `counts.granted` aliases on /permission/status).
+                    // Safe to remove in a future major version once external consumers migrate.
+                    grantedCount = allowlistCount,
                     threads = new {
                         listenerAlive = _listenerThread?.IsAlive ?? false,
                         keepAliveAlive = _keepAliveThread?.IsAlive ?? false,
@@ -1462,21 +1466,10 @@ namespace UnitySkills
                 if (qs.TryGetValue("offset", out var off) && int.TryParse(off, out var offp))
                     offset = Math.Max(0, offp);
 
-                var events = record.progressEvents ?? new System.Collections.Generic.List<BatchJobProgressEvent>();
-                var sliced = events.Skip(offset)
-                    .Select(e => new { e.timestamp, e.progress, e.stage, e.description })
-                    .ToArray();
-
                 job.StatusCode = 200;
-                job.ResponseJson = JsonConvert.SerializeObject(new
-                {
-                    jobId = record.jobId,
-                    status = record.status,
-                    totalCount = events.Count,
-                    offset,
-                    events = sliced,
-                    terminal = IsTerminalStatus(record.status),
-                }, _jsonSettings);
+                job.ResponseJson = JsonConvert.SerializeObject(
+                    AsyncJobService.BuildProgressSnapshot(record, offset),
+                    _jsonSettings);
                 return;
             }
 

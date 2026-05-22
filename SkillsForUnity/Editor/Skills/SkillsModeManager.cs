@@ -86,15 +86,12 @@ namespace UnitySkills
         private const int MaxLiveGrants = 256;
         private const int MaxArgsSummaryChars = 120;
 
-        // Skills that cannot be statically classified as forbidden via metadata alone.
-        // The 5-10 entry budget is intentional — the goal is "self-evident high-risk operations
-        // the metadata can't see"; everything else should be caught by IsForbiddenInSemi.
-        private static readonly HashSet<string> _explicitNeverList = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "scene_clear",
-            "scene_new",
-            "batch_apply",
-        };
+        // v1.9.x: the historical `_explicitNeverList` fallback (scene_clear / scene_new / batch_apply)
+        // has been removed — none of those skill names exist in the current 750-skill surface, and the
+        // 75 NeverInSemi skills are now fully covered by metadata flags (Operation=Delete /
+        // MayEnterPlayMode / MayTriggerReload / RiskLevel=high) checked in IsForbiddenInSemi.
+        // If a future high-risk skill ever needs a non-metadata override, prefer annotating the
+        // skill itself (RiskLevel="high" or an explicit operation flag) over re-introducing a list.
 
         private sealed class GrantEntry
         {
@@ -525,7 +522,10 @@ namespace UnitySkills
 
         /// <summary>
         /// True if the skill must be blocked outside Bypass mode. Implementation matches
-        /// plan section 8 — metadata-driven judgement with a tiny explicit override list.
+        /// plan section 8 — purely metadata-driven judgement.
+        ///
+        /// v1.9.x: 移除 _explicitNeverList 兜底（已无命中）— metadata 已完全覆盖当前 75 个
+        /// NeverInSemi skill（全部由下面 4 条规则触发，0 个依赖名单兜底）。
         ///
         /// 注意：v1.9 改版后，<see cref="CheckAccess"/> 在 IsInAllowlist 命中时**会跳过本判定**，
         /// 让用户能手动放行原本被拦截的高危 skill。
@@ -536,8 +536,7 @@ namespace UnitySkills
             return s.Operation.HasFlag(SkillOperation.Delete)
                 || s.MayEnterPlayMode
                 || s.MayTriggerReload
-                || string.Equals(s.RiskLevel, "high", StringComparison.OrdinalIgnoreCase)
-                || (!string.IsNullOrEmpty(s.Name) && _explicitNeverList.Contains(s.Name));
+                || string.Equals(s.RiskLevel, "high", StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>Wire string for the operating mode ("approval"|"auto"|"bypass").</summary>
@@ -549,6 +548,25 @@ namespace UnitySkills
         /// <summary>Wire string for a SkillMode ("semi"|"full"). Used by /skills manifest.</summary>
         internal static string SkillModeToWire(SkillMode mode) =>
             mode == SkillMode.SemiAuto ? "semi" : "full";
+
+        /// <summary>
+        /// Wire string for the skill's default behavior in <see cref="SkillsOperatingMode.Approval"/> mode,
+        /// ignoring per-user allowlist / one-shot bypass state. Used by /skills manifest so callers can
+        /// reason about authorization requirements without re-deriving the rules from <c>mode</c>.
+        ///
+        /// Mapping (mirrors <see cref="CheckAccess"/> Approval branch):
+        /// <list type="bullet">
+        /// <item><c>"forbid"</c> — <see cref="IsForbiddenInSemi"/> is true; only callable in Bypass mode (or via Allowlist override).</item>
+        /// <item><c>"grant"</c> — FullAuto skill, not forbidden; needs <c>/permission/grant</c> before execution.</item>
+        /// <item><c>"allow"</c> — SemiAuto skill, not forbidden; runs directly in Approval mode.</item>
+        /// </list>
+        /// </summary>
+        internal static string ApprovalBehaviorForSkill(SkillRouter.SkillInfo skill)
+        {
+            if (skill == null) return "allow";
+            if (IsForbiddenInSemi(skill)) return "forbid";
+            return skill.Mode == SkillMode.SemiAuto ? "allow" : "grant";
+        }
 
         /// <summary>Test-only: clear all state (allowlist, pending, prefs, migration flag) to a clean slate.</summary>
         internal static void ResetForTests()

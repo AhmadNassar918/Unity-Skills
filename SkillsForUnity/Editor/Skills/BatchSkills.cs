@@ -330,6 +330,25 @@ namespace UnitySkills
             };
         }
 
+        [UnitySkill("job_progress", "Get fine-grained progress events for a UnitySkills job. Pass previous totalCount as offset for incremental polling.",
+            Category = SkillCategory.Workflow, Operation = SkillOperation.Query,
+            Tags = new[] { "job", "async", "progress" },
+            Outputs = new[] { "jobId", "status", "totalCount", "offset", "events", "terminal" },
+            RequiresInput = new[] { "jobId" },
+            ReadOnly = true,
+            Mode = SkillMode.SemiAuto)]
+        public static object JobProgress(string jobId, int offset = 0)
+        {
+            if (Validate.Required(jobId, "jobId") is object err)
+                return err;
+
+            var job = AsyncJobService.Get(jobId);
+            if (job == null)
+                return new { success = false, error = $"Job not found: {jobId}" };
+
+            return AsyncJobService.BuildProgressSnapshot(job, offset);
+        }
+
         [UnitySkill("job_logs", "Get structured logs for a UnitySkills job.",
             Category = SkillCategory.Workflow, Operation = SkillOperation.Query,
             Tags = new[] { "job", "logs", "async" },

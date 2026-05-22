@@ -312,7 +312,8 @@ namespace UnitySkills
             Category = SkillCategory.Script, Operation = SkillOperation.Modify,
             Tags = new[] { "script", "rename", "refactor", "file" },
             Outputs = new[] { "path", "oldPath", "newName", "jobId" },
-            RequiresInput = new[] { "scriptPath" })]
+            RequiresInput = new[] { "scriptPath" },
+            MayTriggerReload = true, RiskLevel = "high")]
         public static object ScriptRename(string scriptPath, string newName, bool checkCompile = true, int diagnosticLimit = DefaultDiagnosticLimit)
         {
             if (Validate.SafePath(scriptPath, "scriptPath") is object pathErr) return pathErr;
@@ -338,7 +339,8 @@ namespace UnitySkills
             Category = SkillCategory.Script, Operation = SkillOperation.Modify,
             Tags = new[] { "script", "move", "reorganize", "file" },
             Outputs = new[] { "oldPath", "newPath", "jobId" },
-            RequiresInput = new[] { "scriptPath" })]
+            RequiresInput = new[] { "scriptPath" },
+            MayTriggerReload = true, RiskLevel = "high")]
         public static object ScriptMove(string scriptPath, string newFolder, bool checkCompile = true, int diagnosticLimit = DefaultDiagnosticLimit)
         {
             if (Validate.SafePath(scriptPath, "scriptPath") is object pathErr) return pathErr;

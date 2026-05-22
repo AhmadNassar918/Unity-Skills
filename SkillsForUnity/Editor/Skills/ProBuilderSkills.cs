@@ -121,7 +121,7 @@ namespace UnitySkills
         }
 
         [UnitySkill("probuilder_delete_faces", "Delete faces from a ProBuilder mesh by index", TracksWorkflow = true,
-            Category = SkillCategory.ProBuilder, Operation = SkillOperation.Delete,
+            Category = SkillCategory.ProBuilder, Operation = SkillOperation.Modify,
             Tags = new[] { "probuilder", "delete", "face", "modeling" },
             Outputs = new[] { "success", "deletedCount", "remainingFaces", "remainingVertices" },
             RequiresInput = new[] { "proBuilderMesh" })]

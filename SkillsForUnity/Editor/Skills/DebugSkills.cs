@@ -291,7 +291,8 @@ namespace UnitySkills
         [UnitySkill("debug_set_defines", "Set scripting define symbols for current platform", TracksWorkflow = true,
             Category = SkillCategory.Debug, Operation = SkillOperation.Modify,
             Tags = new[] { "defines", "symbols", "preprocessor", "set" },
-            Outputs = new[] { "buildTargetGroup", "defines" })]
+            Outputs = new[] { "buildTargetGroup", "defines", "serverAvailability" },
+            MayTriggerReload = true)]
         public static object DebugSetDefines(string defines)
         {
             var group = EditorUserBuildSettings.selectedBuildTargetGroup;

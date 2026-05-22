@@ -1755,7 +1755,8 @@ namespace UnitySkills
         [UnitySkill("scene_export_report", "Export complete scene structure and script dependency report as markdown file. Use when user asks to: export scene report, generate scene document, save scene overview, create scene context file",
             Category = SkillCategory.Perception, Operation = SkillOperation.Analyze | SkillOperation.Execute,
             Tags = new[] { "scene", "report", "export", "markdown", "documentation" },
-            Outputs = new[] { "savedTo", "objectCount", "userScriptCount", "referenceCount" })]
+            Outputs = new[] { "savedTo", "objectCount", "userScriptCount", "referenceCount" },
+            Mode = SkillMode.SemiAuto)]
         public static object SceneExportReport(
             string savePath = "Assets/Docs/SceneReport.md",
             int maxDepth = 10,

@@ -187,7 +187,7 @@ namespace UnitySkills
             AddModeMenuItem(menu, SkillsOperatingMode.Auto, current,
                 PermissionUiHelpers.L("perm_mode_auto_short", "Auto", "Auto（自动）"));
             AddModeMenuItem(menu, SkillsOperatingMode.Bypass, current,
-                PermissionUiHelpers.L("perm_mode_bypass_short", "Bypass", "Bypass（全自动）"));
+                PermissionUiHelpers.L("perm_mode_bypass_short", "Bypass", "Bypass（全部直接放行）"));
 
             menu.AddSeparator("");
             menu.AddItem(

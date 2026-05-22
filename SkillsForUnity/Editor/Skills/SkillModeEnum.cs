@@ -10,7 +10,7 @@ namespace UnitySkills
         Approval,
         /// <summary>AI 自动判断 — FullAuto skill 直接执行（写审计），仅 NeverInSemi 拦截。</summary>
         Auto,
-        /// <summary>全自动 — 所有 skill 直接放行，仅 ConfirmationToken 仍生效。</summary>
+        /// <summary>跳过审批 — 所有 skill 直接放行，仅 ConfirmationToken 仍生效。</summary>
         Bypass
     }
 

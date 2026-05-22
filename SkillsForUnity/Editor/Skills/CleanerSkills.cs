@@ -483,7 +483,7 @@ namespace UnitySkills
         }
 
         [UnitySkill("cleaner_fix_missing_scripts", "Remove missing script components from GameObjects", TracksWorkflow = true,
-            Category = SkillCategory.Cleaner, Operation = SkillOperation.Execute | SkillOperation.Delete,
+            Category = SkillCategory.Cleaner, Operation = SkillOperation.Execute | SkillOperation.Modify,
             Tags = new[] { "cleaner", "fix", "missing", "scripts" },
             Outputs = new[] { "removedComponents" })]
         public static object CleanerFixMissingScripts(bool includeInactive = true)

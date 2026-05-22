@@ -226,7 +226,7 @@ namespace UnitySkills
             return new { count = results.Length, colliders = results };
         }
 
-        [UnitySkill("physics_create_material", "Create a PhysicMaterial asset", TracksWorkflow = true,
+        [UnitySkill("physics_create_material", "Create a PhysicMaterial asset. Automatically uses `PhysicsMaterial` on Unity 6+, `PhysicMaterial` on earlier versions.", TracksWorkflow = true,
             Category = SkillCategory.Physics, Operation = SkillOperation.Create,
             Tags = new[] { "material", "friction", "bounciness", "asset" },
             Outputs = new[] { "success", "path" })]
@@ -258,7 +258,7 @@ namespace UnitySkills
             return new { success = true, path };
         }
 
-        [UnitySkill("physics_set_material", "Set PhysicMaterial on a collider (supports name/instanceId/path)", TracksWorkflow = true,
+        [UnitySkill("physics_set_material", "Set PhysicMaterial on a collider (supports name/instanceId/path). Automatically uses `PhysicsMaterial` on Unity 6+, `PhysicMaterial` on earlier versions.", TracksWorkflow = true,
             Category = SkillCategory.Physics, Operation = SkillOperation.Modify,
             Tags = new[] { "material", "collider", "friction", "bounciness" },
             Outputs = new[] { "success", "gameObject", "material" },

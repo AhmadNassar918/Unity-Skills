@@ -177,7 +177,8 @@ namespace UnitySkills
         [UnitySkill("package_install_cinemachine", "Install Cinemachine. version: 2 or 3 (default 3). CM3 auto-installs Splines dependency.",
             Category = SkillCategory.Package, Operation = SkillOperation.Execute,
             Tags = new[] { "package", "install", "cinemachine", "camera", "job" },
-            Outputs = new[] { "message", "jobId" })]
+            Outputs = new[] { "message", "jobId" },
+            MutatesAssets = true, MayTriggerReload = true, RiskLevel = "high")]
         public static object PackageInstallCinemachine(int version = 3)
         {
             var useV3 = version >= 3;
@@ -231,7 +232,8 @@ namespace UnitySkills
         [UnitySkill("package_install_splines", "Install Unity Splines package. Auto-detects correct version for Unity 6 vs Unity 2022.",
             Category = SkillCategory.Package, Operation = SkillOperation.Execute,
             Tags = new[] { "package", "install", "splines", "path", "job" },
-            Outputs = new[] { "message", "jobId" })]
+            Outputs = new[] { "message", "jobId" },
+            MutatesAssets = true, MayTriggerReload = true, RiskLevel = "high")]
         public static object PackageInstallSplines()
         {
             var currentVersion = PackageManagerHelper.GetInstalledVersion(PackageManagerHelper.SplinesPackageId);

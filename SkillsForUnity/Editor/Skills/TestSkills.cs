@@ -33,7 +33,7 @@ namespace UnitySkills
             Category = SkillCategory.Test, Operation = SkillOperation.Execute,
             Tags = new[] { "test", "run", "async", "editmode", "playmode", "job" },
             Outputs = new[] { "jobId", "testMode", "message" },
-            SupportsDryRun = false)]
+            SupportsDryRun = false, MayEnterPlayMode = true)]
         public static object TestRun(string testMode = "EditMode", string filter = null)
         {
             if (!AsyncJobService.TryStartTestJob(testMode, filter, out var job, out var error))
@@ -218,7 +218,7 @@ namespace UnitySkills
             Category = SkillCategory.Test, Operation = SkillOperation.Execute,
             Tags = new[] { "test", "run", "name", "specific", "job" },
             Outputs = new[] { "jobId", "testName", "testMode" },
-            SupportsDryRun = false)]
+            SupportsDryRun = false, MayEnterPlayMode = true)]
         public static object TestRunByName(string testName, string testMode = "EditMode")
         {
             if (Validate.Required(testName, "testName") is object err)
@@ -476,7 +476,8 @@ namespace UnitySkills
         [UnitySkill("test_create_editmode", "Create an EditMode test script template and return a compile-monitor job.",
             Category = SkillCategory.Test, Operation = SkillOperation.Create,
             Tags = new[] { "test", "create", "editmode", "template", "job" },
-            Outputs = new[] { "path", "testName", "jobId" })]
+            Outputs = new[] { "path", "testName", "jobId", "serverAvailability" },
+            MutatesAssets = true, MayTriggerReload = true)]
         public static object TestCreateEditMode(string testName, string folder = "Assets/Tests/Editor")
         {
             if (Validate.Required(testName, "testName") is object nameErr) return nameErr;
@@ -518,7 +519,8 @@ public class {testName}
         [UnitySkill("test_create_playmode", "Create a PlayMode test script template and return a compile-monitor job.",
             Category = SkillCategory.Test, Operation = SkillOperation.Create,
             Tags = new[] { "test", "create", "playmode", "template", "job" },
-            Outputs = new[] { "path", "testName", "jobId" })]
+            Outputs = new[] { "path", "testName", "jobId", "serverAvailability" },
+            MutatesAssets = true, MayTriggerReload = true)]
         public static object TestCreatePlayMode(string testName, string folder = "Assets/Tests/Runtime")
         {
             if (Validate.Required(testName, "testName") is object nameErr) return nameErr;

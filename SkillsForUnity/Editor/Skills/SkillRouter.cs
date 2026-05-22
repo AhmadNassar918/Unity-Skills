@@ -677,7 +677,8 @@ namespace UnitySkills
                         supportsDryRun = skill.SupportsDryRun,
                         riskLevel = skill.RiskLevel,
                         requiresPackages = skill.RequiresPackages,
-                        mode = SkillsModeManager.SkillModeToWire(skill.Mode)
+                        mode = SkillsModeManager.SkillModeToWire(skill.Mode),
+                        approvalBehavior = SkillsModeManager.ApprovalBehaviorForSkill(skill)
                     },
                     parameters = validation.ParameterDetails,
                     validation = new
@@ -868,6 +869,7 @@ namespace UnitySkills
                     riskLevel = s.RiskLevel,
                     requiresPackages = s.RequiresPackages,
                     mode = SkillsModeManager.SkillModeToWire(s.Mode),
+                    approvalBehavior = SkillsModeManager.ApprovalBehaviorForSkill(s),
                     parameters = s.Parameters.Select(p => new
                     {
                         name = p.Name,
@@ -1013,6 +1015,7 @@ namespace UnitySkills
             mutatesAssets = s.MutatesAssets,
             requiresPackages = s.RequiresPackages,
             mode = SkillsModeManager.SkillModeToWire(s.Mode),
+            approvalBehavior = SkillsModeManager.ApprovalBehaviorForSkill(s),
         };
 
         // ========== Skill Dependency Chain ==========
